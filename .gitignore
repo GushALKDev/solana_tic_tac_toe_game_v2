@@ -1,0 +1,8 @@
+program/.DS_Store
+program/.anchor
+program/target
+program/node_modules
+program/test-ledger
+program/.yarn
+.DS_Store
+**/*.rs.bk
