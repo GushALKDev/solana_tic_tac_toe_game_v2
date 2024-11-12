@@ -10,6 +10,7 @@ A decentralized Tic-Tac-Toe game built on the Solana blockchain using Anchor. Th
 - **Win and Tie Detection**: Automatically detects when a player has won or if the game ends in a tie.
 - **Custom Error Handling**: Provides error messages for common gameplay issues like invalid moves or out-of-turn actions.
 - **Multiple Games Support**: A global state allows tracking and managing multiple games simultaneously, each with a unique identifier.
+- **Wager System**: Winner takes the whole pot.
 
 ## Differences from V1
 
