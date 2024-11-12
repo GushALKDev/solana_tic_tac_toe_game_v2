@@ -18,6 +18,8 @@ A decentralized Tic-Tac-Toe game built on the Solana blockchain using Anchor. Th
 - **Manual Account Closure**: V2 introduces a `close_game_account()` function to reclaim lamports, whereas V1 did not manage account closures.
 - **Better Error Handling**: More comprehensive error messages for clearer debugging and player guidance.
 - **Optimized Game Logic**: Refined checks to ensure valid moves and proper enforcement of game rules.
+- **Game Fee**: Introduce a fee system for each game that contributes to a pool or is used for funding game development and maintenance.
+- **Wager System**: Both players deposit a predefined amount of SOL or tokens before starting a game. The winner would take the pot minus a small game fee, and in the case of a tie, the amount would be split evenly between both players (minus the fee).
 
 ## Game Setup
 
@@ -192,8 +194,6 @@ The project includes extensive unit tests to verify game mechanics and edge case
 ## Potential Enhancements
 
 - **Frontend Integration**: Develop a user-friendly frontend using frameworks like React or Next.js to allow players to interact with the game more easily. This would include wallet connection, game setup, and real-time game updates.
-- **Wager System**: Implement a feature where both players deposit a predefined amount of SOL or tokens before starting a game. The winner would take the pot minus a small game fee, and in the case of a tie, the amount would be split evenly between both players (minus the fee).
-- **Game Fee**: Introduce a fee system for each game that contributes to a pool or is used for funding game development and maintenance.
 - **Leaderboard**: Create a global leaderboard to rank players based on their win-loss records, incentivizing competitive play.
 - **Analytics Dashboard**: Develop an on-chain analytics dashboard for tracking statistics like total games played, win rates, and average game duration.
 - **Game History**: Allow players to query past game results and view the full history of moves, which could be useful for analysis or auditing.

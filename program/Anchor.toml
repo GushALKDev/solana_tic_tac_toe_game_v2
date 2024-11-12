@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-tic_tac_toe = "CWKWcWzgQq6YJKnMvzMahwM7TYqHKXfciBbUkdevU6R7"
+tic_tac_toe = "AmzgW58Wn82iRhxKTFSMkjKDKw2B1ojLEi1bVykLzRyS"
 
 [programs.localnet]
 tic_tac_toe = "Ajc8jZmvtHKnV5DFAuwzv7mEfbxnhP2HUYm6mAN7Y86J"
