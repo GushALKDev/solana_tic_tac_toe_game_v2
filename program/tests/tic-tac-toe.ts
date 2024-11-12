@@ -1,17 +1,16 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { TicTacToe } from "../target/types/tic_tac_toe";
-import { expect } from 'chai';
+import { expect } from "chai";
 
 describe("tic-tac-toe", () => {
-  let network:string;
+  let network: string;
   // Sets up the client to use the local cluster.
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
 
   if (provider.connection.rpcEndpoint === "http://127.0.0.1:8899") network = "localhost";
   else if (provider.connection.rpcEndpoint === "https://api.devnet.solana.com") network = "devnet";
-
 
   const program = anchor.workspace.TicTacToe as Program<TicTacToe>;
   let globalStateAddress;
@@ -30,19 +29,16 @@ describe("tic-tac-toe", () => {
     player5 = anchor.web3.Keypair.generate(); // Player 5
     player6 = anchor.web3.Keypair.generate(); // Player 6
     if (network === "localhost") {
-        console.log("Funding players accounts...");
-        await provider.connection.requestAirdrop(player1.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
-        await provider.connection.requestAirdrop(player2.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
-        await provider.connection.requestAirdrop(player3.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
-        await provider.connection.requestAirdrop(player4.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
-        await provider.connection.requestAirdrop(player5.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
-        await provider.connection.requestAirdrop(player6.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
+      console.log("Funding players accounts...");
+      await provider.connection.requestAirdrop(player1.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
+      await provider.connection.requestAirdrop(player2.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
+      await provider.connection.requestAirdrop(player3.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
+      await provider.connection.requestAirdrop(player4.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
+      await provider.connection.requestAirdrop(player5.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
+      await provider.connection.requestAirdrop(player6.publicKey, 200 * anchor.web3.LAMPORTS_PER_SOL); // Airdrop some SOL
     }
 
-    [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
+    [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
 
     console.log("Program ID:", program.programId.toString());
     console.log("Global State Address:", globalStateAddress.toString());
@@ -53,20 +49,21 @@ describe("tic-tac-toe", () => {
     console.log("Player 4 Address:", player4.publicKey.toString());
     console.log("Player 5 Address:", player5.publicKey.toString());
     console.log("Player 6 Address:", player6.publicKey.toString());
-    
+
     // Calls a method to create and initialize the global state
     try {
       await program.account.globalState.fetch(globalStateAddress);
       console.log("Global state already exists, skipping initialization");
     } catch (e) {
       console.log("Global state does not exist, initializing");
-      await program.methods.initializeGlobalState()
-      .accounts({
-        globalState: globalStateAddress,
-        payer: owner.publicKey,
-        systemProgram: anchor.web3.SystemProgram.programId,
-      })
-      .rpc();
+      await program.methods
+        .initializeGlobalState()
+        .accounts({
+          globalState: globalStateAddress,
+          payer: owner.publicKey,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .rpc();
     }
 
     // Fetch global account
@@ -75,32 +72,26 @@ describe("tic-tac-toe", () => {
     gameBet = globalStatePDA.bet;
     gameFeeP = globalStatePDA.fee;
   });
-  
+
   // Test to set up a game
-  it('setup game player 1 no waiting games!', async () => {
+  it("setup game player 1 no waiting games!", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> setup game player 1 no waiting games");
     console.log("----------------------------------------");
     // Calculate the PDA for the game account using the appropriate seeds
-    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
-    
+    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
+
     // Fetch global account
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
-    
+
     const gameCount = globalStatePDA.gameCount.toString();
-    
+
     const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from(globalStatePDA.gameCount.toArray('le', 8)),
-      ],
+      [Buffer.from("game"), Buffer.from(globalStatePDA.gameCount.toArray("le", 8))],
       program.programId
     );
-    
+
     console.log("Game number: ", Number(gameCount));
     console.log("Game Address:", gameAddress.toString());
 
@@ -132,31 +123,24 @@ describe("tic-tac-toe", () => {
     ]);
   });
 
-
-  it('setup game player 1 with a waiting game already opened by himself!', async () => {
+  it("setup game player 1 with a waiting game already opened by himself!", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> setup game player 1 with a waiting game already opened by himself");
     console.log("----------------------------------------");
     // Calculate the PDA for the game account using the appropriate seeds
-    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
-    
+    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
+
     // Fetch global account
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
-    
+
     const gameCount = globalStatePDA.gameCount.toString();
-    
+
     const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from(globalStatePDA.gameCount.toArray('le', 8)),
-      ],
+      [Buffer.from("game"), Buffer.from(globalStatePDA.gameCount.toArray("le", 8))],
       program.programId
     );
-    
+
     console.log("Game number: ", Number(gameCount));
     console.log("Game Address:", gameAddress.toString());
 
@@ -171,30 +155,25 @@ describe("tic-tac-toe", () => {
         })
         .signers([player1])
         .rpc();
-    }
-    catch(error) {
+    } catch (error) {
       console.log(error.message);
       expect(error.message).to.contain("GameAlreadyInProgress"); // Check that the error message contains the expected text
     }
   });
 
-
-  it('setup game player 2 with a waiting game!', async () => {
+  it("setup game player 2 with a waiting game!", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> setup game player 2 with a waiting game");
     console.log("----------------------------------------");
     // Calculate the PDA for the game account using the appropriate seeds
-    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
-    
+    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
+
     // Fetch global account
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
-    
+
     const gameCount = globalStatePDA.gameCount.toString();
-    
+
     console.log("Game number: ", Number(gameCount));
 
     // Call the game setup method
@@ -207,12 +186,9 @@ describe("tic-tac-toe", () => {
       })
       .signers([player2]) // PlayerTwo is the signer now
       .rpc();
-      
+
     const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from(globalStatePDA.gameCount.toArray('le', 8)),
-      ],
+      [Buffer.from("game"), Buffer.from(globalStatePDA.gameCount.toArray("le", 8))],
       program.programId
     );
 
@@ -221,30 +197,24 @@ describe("tic-tac-toe", () => {
   });
 
   // Test to set up a game
-  it('setup game player 3 no waiting games!', async () => {
+  it("setup game player 3 no waiting games!", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> setup game player 3 no waiting games");
     console.log("----------------------------------------");
     // Calculate the PDA for the game account using the appropriate seeds
-    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
-    
+    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
+
     // Fetch global account
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
-    
+
     const gameCount = globalStatePDA.gameCount.toString();
-    
+
     const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from(globalStatePDA.gameCount.toArray('le', 8)),
-      ],
+      [Buffer.from("game"), Buffer.from(globalStatePDA.gameCount.toArray("le", 8))],
       program.programId
     );
-    
+
     console.log("Game number: ", Number(gameCount));
     console.log("Game Address:", gameAddress.toString());
 
@@ -276,22 +246,19 @@ describe("tic-tac-toe", () => {
     ]);
   });
 
-  it('setup game player 4 with a waiting game!', async () => {
+  it("setup game player 4 with a waiting game!", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> setup game player 4 with a waiting game");
     console.log("----------------------------------------");
     // Calculate the PDA for the game account using the appropriate seeds
-    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
-    
+    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
+
     // Fetch global account
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
-    
+
     const gameCount = globalStatePDA.gameCount.toString();
-    
+
     console.log("Game number: ", Number(gameCount));
 
     // Call the game setup method
@@ -306,30 +273,24 @@ describe("tic-tac-toe", () => {
       .rpc();
   });
 
-  it('setup game player 4 with an already opened game!', async () => {
+  it("setup game player 4 with an already opened game!", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> setup game player 4 with an already opened game");
     console.log("----------------------------------------");
     // Calculate the PDA for the game account using the appropriate seeds
-    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
-    
+    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
+
     // Fetch global account
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
-    
+
     const gameCount = globalStatePDA.gameCount.toString();
-    
+
     const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from(globalStatePDA.gameCount.toArray('le', 8)),
-      ],
+      [Buffer.from("game"), Buffer.from(globalStatePDA.gameCount.toArray("le", 8))],
       program.programId
     );
-    
+
     console.log("Game number: ", Number(gameCount));
     console.log("Game Address:", gameAddress.toString());
 
@@ -344,38 +305,31 @@ describe("tic-tac-toe", () => {
         })
         .signers([player4])
         .rpc();
-    }
-    catch(error) {
+    } catch (error) {
       console.log(error.message);
       expect(error.message).to.contain("GameAlreadyInProgress"); // Check that the error message contains the expected text
     }
   });
 
   // Test to set up a game
-  it('setup game player 5 no waiting games!', async () => {
+  it("setup game player 5 no waiting games!", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> setup game player 5 no waiting games");
     console.log("----------------------------------------");
     // Calculate the PDA for the game account using the appropriate seeds
-    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
-    
+    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
+
     // Fetch global account
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
-    
+
     const gameCount = globalStatePDA.gameCount.toString();
-    
+
     const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from(globalStatePDA.gameCount.toArray('le', 8)),
-      ],
+      [Buffer.from("game"), Buffer.from(globalStatePDA.gameCount.toArray("le", 8))],
       program.programId
     );
-    
+
     console.log("Game number: ", Number(gameCount));
     console.log("Game Address:", gameAddress.toString());
 
@@ -405,30 +359,24 @@ describe("tic-tac-toe", () => {
     ]);
   });
 
-  it('setup game player 6 with a waiting game!', async () => {
+  it("setup game player 6 with a waiting game!", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> setup game player 6 with a waiting game");
     console.log("----------------------------------------");
     // Calculate the PDA for the game account using the appropriate seeds
-    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
-    
+    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
+
     // Fetch global account
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
-    
+
     const gameCount = globalStatePDA.gameCount.toString();
-    
+
     const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from(globalStatePDA.gameCount.toArray('le', 8)),
-      ],
+      [Buffer.from("game"), Buffer.from(globalStatePDA.gameCount.toArray("le", 8))],
       program.programId
     );
-    
+
     console.log("Game number: ", Number(gameCount));
     console.log("Game Address:", gameAddress.toString());
 
@@ -444,7 +392,7 @@ describe("tic-tac-toe", () => {
       .rpc();
   });
 
-  it('player 1 wins', async () => {
+  it("player 1 wins", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 1 wins");
@@ -456,83 +404,58 @@ describe("tic-tac-toe", () => {
     const globalState = await program.account.globalState.fetch(globalStateAddress);
     console.log("globalState", globalState);
     const gameAddress = getGamePDAFromPlayerPubKey(globalState, player1.publicKey.toString());
-    
+
     const gamePDABefore = await program.account.game.fetch(gameAddress);
     console.log("Game Address Before:", gamePDABefore);
 
     // Sequence of moves for player 1 to win:
-    await play(program, player1, player2, globalStateAddress, gameAddress,
-      { row: 0, column: 0 },
-      2,
-      { inProgress: {} },
-      [
-        [{ x: {} }, null, null],
-        [null, null, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player1, player2, globalStateAddress, gameAddress, { row: 0, column: 0 }, 2, { inProgress: {} }, [
+      [{ x: {} }, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player2, player1, globalStateAddress, gameAddress,
-      { row: 1, column: 0 },
-      3,
-      { inProgress: {} },
-      [
-        [{ x: {} }, null, null],
-        [{ o: {} }, null, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player2, player1, globalStateAddress, gameAddress, { row: 1, column: 0 }, 3, { inProgress: {} }, [
+      [{ x: {} }, null, null],
+      [{ o: {} }, null, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player1, player2, globalStateAddress, gameAddress,
-      { row: 0, column: 1 },
-      4,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { x: {} }, null],
-        [{ o: {} }, null, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player1, player2, globalStateAddress, gameAddress, { row: 0, column: 1 }, 4, { inProgress: {} }, [
+      [{ x: {} }, { x: {} }, null],
+      [{ o: {} }, null, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player2, player1, globalStateAddress, gameAddress,
-      { row: 1, column: 1 },
-      5,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { x: {} }, null],
-        [{ o: {} }, { o: {} }, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player2, player1, globalStateAddress, gameAddress, { row: 1, column: 1 }, 5, { inProgress: {} }, [
+      [{ x: {} }, { x: {} }, null],
+      [{ o: {} }, { o: {} }, null],
+      [null, null, null],
+    ]);
 
     // Final move for player 1 to win
-    await play(program, player1, player2, globalStateAddress, gameAddress,
-      { row: 0, column: 2 },
-      6,
-      { won: { winner: player1.publicKey } },
-      [
-        [{ x: {} }, { x: {} }, { x: {} }],
-        [{ o: {} }, { o: {} }, null],
-        [null, null, null],
-      ]
-    );
-    
+    await play(program, player1, player2, globalStateAddress, gameAddress, { row: 0, column: 2 }, 6, { won: { winner: player1.publicKey } }, [
+      [{ x: {} }, { x: {} }, { x: {} }],
+      [{ o: {} }, { o: {} }, null],
+      [null, null, null],
+    ]);
+
     const gamePDAAfter = await program.account.game.fetch(gameAddress);
     console.log("Game Address After:", gamePDAAfter);
 
-    expect(gamePDABefore.pot.toNumber()).to.eql(gameBet*2);
+    expect(gamePDABefore.pot.toNumber()).to.eql(gameBet * 2);
     expect(gamePDAAfter.pot.toNumber()).to.eql(0);
 
     let player1BalanceAfter = await provider.connection.getBalance(player1.publicKey);
     let player2BalanceAfter = await provider.connection.getBalance(player2.publicKey);
 
-    let prize = gameBet * 2 - (gameBet * 2 * gameFeeP / 100);
+    let prize = gameBet * 2 - (gameBet * 2 * gameFeeP) / 100;
 
     expect(player1BalanceAfter).to.eql(player1BalanceBefore + prize);
     expect(player2BalanceAfter).to.eql(player2BalanceBefore);
   });
 
-  it('player 4 plays out of turn', async () => {
+  it("player 4 plays out of turn", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 4 plays out of turn");
@@ -544,24 +467,18 @@ describe("tic-tac-toe", () => {
     // console.log("Game Address:", gamePDA);
 
     try {
-      await play(program, player4, player3, globalStateAddress, gamePDA,
-        { row: 0, column: 0 },
-        2,
-        { inProgress: {} },
-        [
-          [{ x: {} }, null, null],
-          [null, null, null],
-          [null, null, null],
-        ]
-      );
-    }
-    catch(error) {
+      await play(program, player4, player3, globalStateAddress, gamePDA, { row: 0, column: 0 }, 2, { inProgress: {} }, [
+        [{ x: {} }, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+    } catch (error) {
       console.log(error.message);
       expect(error.message).to.contain("NotPlayersTurn"); // Check that the error message contains the expected text
     }
   });
 
-  it('player 3 plays twice', async () => {
+  it("player 3 plays twice", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 3 plays twice");
@@ -572,37 +489,26 @@ describe("tic-tac-toe", () => {
     const gamePDA = getGamePDAFromPlayerPubKey(globalState, player3.publicKey.toString());
     // console.log("Game Address:", gamePDA);
 
-    await play(program, player3, player4, globalStateAddress, gamePDA,
-      { row: 0, column: 0 },
-      2,
-      { inProgress: {} },
-      [
-        [{ x: {} }, null, null],
-        [null, null, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player3, player4, globalStateAddress, gamePDA, { row: 0, column: 0 }, 2, { inProgress: {} }, [
+      [{ x: {} }, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
 
     try {
-      await play(program, player3, player4, globalStateAddress, gamePDA,
-        { row: 1, column: 0 },
-        3,
-        { inProgress: {} },
-        [
-          [{ x: {} }, null, null],
-          [{ o: {} }, null, null],
-          [null, null, null],
-        ]
-      );
-    }
-    catch(error) {
+      await play(program, player3, player4, globalStateAddress, gamePDA, { row: 1, column: 0 }, 3, { inProgress: {} }, [
+        [{ x: {} }, null, null],
+        [{ o: {} }, null, null],
+        [null, null, null],
+      ]);
+    } catch (error) {
       console.log(error.message);
       expect(error.message).to.contain("NotPlayersTurn"); // Check that the error message contains the expected text
     }
   });
 
   // Test to simulate player 1 plays twice
-  it('player 4 plays out of bounds', async () => {
+  it("player 4 plays out of bounds", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 4 plays out of bounds");
@@ -614,25 +520,19 @@ describe("tic-tac-toe", () => {
     // console.log("Game Address:", gamePDA);
 
     try {
-      await play(program, player4, player3, globalStateAddress, gamePDA,
-        { row: 3, column: 0 },
-        3,
-        { inProgress: {} },
-        [
-          [{ x: {} }, null, null],
-          [{ o: {} }, null, null],
-          [null, null, null],
-        ]
-      );
-    }
-    catch(error) {
+      await play(program, player4, player3, globalStateAddress, gamePDA, { row: 3, column: 0 }, 3, { inProgress: {} }, [
+        [{ x: {} }, null, null],
+        [{ o: {} }, null, null],
+        [null, null, null],
+      ]);
+    } catch (error) {
       console.log(error.message);
       expect(error.message).to.contain("TileOutOfBounds"); // Check that the error message contains the expected text
     }
   });
 
   // Test to simulate player 1 plays twice
-  it('player 4 plays on an already set tile', async () => {
+  it("player 4 plays on an already set tile", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 4 plays on an already set tile");
@@ -644,24 +544,18 @@ describe("tic-tac-toe", () => {
     // console.log("Game Address:", gamePDA);
 
     try {
-      await play(program, player4, player3, globalStateAddress, gamePDA,
-        { row: 0, column: 0 },
-        3,
-        { inProgress: {} },
-        [
-          [{ x: {} }, null, null],
-          [null, null, null],
-          [null, null, null],
-        ]
-      );
-    }
-    catch(error) {
+      await play(program, player4, player3, globalStateAddress, gamePDA, { row: 0, column: 0 }, 3, { inProgress: {} }, [
+        [{ x: {} }, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+    } catch (error) {
       console.log(error.message);
       expect(error.message).to.contain("TileAlreadySet"); // Check that the error message contains the expected text
     }
   });
 
-  it('player 3 wins', async () => {
+  it("player 3 wins", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 3 wins");
@@ -673,72 +567,51 @@ describe("tic-tac-toe", () => {
     const globalState = await program.account.globalState.fetch(globalStateAddress);
     console.log("globalState", globalState);
     const gameAddress = getGamePDAFromPlayerPubKey(globalState, player3.publicKey.toString());
-    
+
     const gamePDABefore = await program.account.game.fetch(gameAddress);
     console.log("Game Address Before:", gamePDABefore);
 
-    await play(program, player4, player3, globalStateAddress, gameAddress,
-      { row: 1, column: 0 },
-      3,
-      { inProgress: {} },
-      [
-        [{ x: {} }, null, null],
-        [{ o: {} }, null, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player4, player3, globalStateAddress, gameAddress, { row: 1, column: 0 }, 3, { inProgress: {} }, [
+      [{ x: {} }, null, null],
+      [{ o: {} }, null, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player3, player4, globalStateAddress, gameAddress,
-      { row: 0, column: 1 },
-      4,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { x: {} }, null],
-        [{ o: {} }, null, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player3, player4, globalStateAddress, gameAddress, { row: 0, column: 1 }, 4, { inProgress: {} }, [
+      [{ x: {} }, { x: {} }, null],
+      [{ o: {} }, null, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player4, player3, globalStateAddress, gameAddress,
-      { row: 1, column: 1 },
-      5,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { x: {} }, null],
-        [{ o: {} }, { o: {} }, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player4, player3, globalStateAddress, gameAddress, { row: 1, column: 1 }, 5, { inProgress: {} }, [
+      [{ x: {} }, { x: {} }, null],
+      [{ o: {} }, { o: {} }, null],
+      [null, null, null],
+    ]);
 
     // Final move for player 1 to win
-    await play(program, player3, player4, globalStateAddress, gameAddress,
-      { row: 0, column: 2 },
-      6,
-      { won: { winner: player3.publicKey } },
-      [
-        [{ x: {} }, { x: {} }, { x: {} }],
-        [{ o: {} }, { o: {} }, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player3, player4, globalStateAddress, gameAddress, { row: 0, column: 2 }, 6, { won: { winner: player3.publicKey } }, [
+      [{ x: {} }, { x: {} }, { x: {} }],
+      [{ o: {} }, { o: {} }, null],
+      [null, null, null],
+    ]);
 
     const gamePDAAfter = await program.account.game.fetch(gameAddress);
     console.log("Game Address After:", gamePDAAfter);
 
-    expect(gamePDABefore.pot.toNumber()).to.eql(gameBet*2);
+    expect(gamePDABefore.pot.toNumber()).to.eql(gameBet * 2);
     expect(gamePDAAfter.pot.toNumber()).to.eql(0);
 
     let player3BalanceAfter = await provider.connection.getBalance(player3.publicKey);
     let player4BalanceAfter = await provider.connection.getBalance(player4.publicKey);
 
-    let prize = gameBet * 2 - (gameBet * 2 * gameFeeP / 100);
+    let prize = gameBet * 2 - (gameBet * 2 * gameFeeP) / 100;
 
     expect(player3BalanceAfter).to.eql(player3BalanceBefore + prize);
     expect(player4BalanceAfter).to.eql(player4BalanceBefore);
-
   });
 
-  it('player 4 fails on closing the account', async () => {
+  it("player 4 fails on closing the account", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 4 fails on closing the account");
@@ -746,13 +619,7 @@ describe("tic-tac-toe", () => {
 
     const globalState = await program.account.globalState.fetch(globalStateAddress);
     // console.log("globalState", globalState);
-    const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]),
-      ],
-      program.programId
-    );
+    const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("game"), Buffer.from([2, 0, 0, 0, 0, 0, 0, 0])], program.programId);
     console.log("Game Address:", gameAddress);
 
     try {
@@ -766,14 +633,13 @@ describe("tic-tac-toe", () => {
         })
         .signers([player4]) // PlayerTwo is the signer now
         .rpc();
-      }
-      catch(error) {
-        console.log(error);
-        expect(error.message).to.contain("SignerDidNotOpenTheGameAccount."); // Check that the error message contains the expected text
-      }
+    } catch (error) {
+      console.log(error);
+      expect(error.message).to.contain("SignerDidNotOpenTheGameAccount."); // Check that the error message contains the expected text
+    }
   });
 
-  it('player 3 close the game account', async () => {
+  it("player 3 close the game account", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 3 close the game account");
@@ -781,13 +647,7 @@ describe("tic-tac-toe", () => {
 
     const globalState = await program.account.globalState.fetch(globalStateAddress);
     // console.log("globalState", globalState);
-    const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from([2, 0, 0, 0, 0, 0, 0, 0]),
-      ],
-      program.programId
-    );
+    const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("game"), Buffer.from([2, 0, 0, 0, 0, 0, 0, 0])], program.programId);
     let gamePDA = await program.account.game.fetch(gameAddress);
 
     // Account exists before
@@ -804,19 +664,18 @@ describe("tic-tac-toe", () => {
       })
       .signers([player3]) // PlayerTwo is the signer now
       .rpc();
-    
+
     // Account doesn´t exist later
     try {
       let gamePDA = await program.account.game.fetch(gameAddress);
       // console.log("Game PDA:", gamePDA);
-    }
-    catch(error) {
+    } catch (error) {
       console.log(error);
       expect(error.message).to.contain("Account does not exist or has no data"); // Check that the error message contains the expected text
     }
   });
 
-  it('game draw for players 5 & 6', async () => {
+  it("game draw for players 5 & 6", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> game draw for players 5 & 6");
@@ -828,101 +687,66 @@ describe("tic-tac-toe", () => {
     const globalState = await program.account.globalState.fetch(globalStateAddress);
     console.log("globalState", globalState);
     const gameAddress = getGamePDAFromPlayerPubKey(globalState, player5.publicKey.toString());
-    
+
     const gamePDABefore = await program.account.game.fetch(gameAddress);
     console.log("Game Address Before:", gamePDABefore);
 
     // Sequence of moves for a draw:
-    await play(program, player5, player6, globalStateAddress, gameAddress,
-      { row: 0, column: 0 },
-      2,
-      { inProgress: {} },
-      [
-        [{ x: {} }, null, null],
-        [null, null, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player5, player6, globalStateAddress, gameAddress, { row: 0, column: 0 }, 2, { inProgress: {} }, [
+      [{ x: {} }, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player6, player5, globalStateAddress, gameAddress,
-      { row: 0, column: 1 },
-      3,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { o: {} }, null],
-        [null, null, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player6, player5, globalStateAddress, gameAddress, { row: 0, column: 1 }, 3, { inProgress: {} }, [
+      [{ x: {} }, { o: {} }, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player5, player6, globalStateAddress, gameAddress,
-      { row: 0, column: 2 },
-      4,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { o: {} }, { x: {} }],
-        [null, null, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player5, player6, globalStateAddress, gameAddress, { row: 0, column: 2 }, 4, { inProgress: {} }, [
+      [{ x: {} }, { o: {} }, { x: {} }],
+      [null, null, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player6, player5, globalStateAddress, gameAddress,
-      { row: 1, column: 1 },
-      5,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { o: {} }, { x: {} }],
-        [null, { o: {} }, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player6, player5, globalStateAddress, gameAddress, { row: 1, column: 1 }, 5, { inProgress: {} }, [
+      [{ x: {} }, { o: {} }, { x: {} }],
+      [null, { o: {} }, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player5, player6, globalStateAddress, gameAddress,
-      { row: 1, column: 0 },
-      6,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { o: {} }, { x: {} }],
-        [{ x: {} }, { o: {} }, null],
-        [null, null, null],
-      ]
-    );
+    await play(program, player5, player6, globalStateAddress, gameAddress, { row: 1, column: 0 }, 6, { inProgress: {} }, [
+      [{ x: {} }, { o: {} }, { x: {} }],
+      [{ x: {} }, { o: {} }, null],
+      [null, null, null],
+    ]);
 
-    await play(program, player6, player5, globalStateAddress, gameAddress,
-      { row: 1, column: 2 },
-      7,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { o: {} }, { x: {} }],
-        [{ x: {} }, { o: {} }, { o: {} }],
-        [null, null, null],
-      ]
-    );
+    await play(program, player6, player5, globalStateAddress, gameAddress, { row: 1, column: 2 }, 7, { inProgress: {} }, [
+      [{ x: {} }, { o: {} }, { x: {} }],
+      [{ x: {} }, { o: {} }, { o: {} }],
+      [null, null, null],
+    ]);
 
-    await play(program, player5, player6, globalStateAddress, gameAddress,
-      { row: 2, column: 1 },
-      8,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { o: {} }, { x: {} }],
-        [{ x: {} }, { o: {} }, { o: {} }],
-        [null, { x: {} }, null],
-      ]
-    );
+    await play(program, player5, player6, globalStateAddress, gameAddress, { row: 2, column: 1 }, 8, { inProgress: {} }, [
+      [{ x: {} }, { o: {} }, { x: {} }],
+      [{ x: {} }, { o: {} }, { o: {} }],
+      [null, { x: {} }, null],
+    ]);
 
-    await play(program, player6, player5, globalStateAddress, gameAddress,
-      { row: 2, column: 0 },
-      9,
-      { inProgress: {} },
-      [
-        [{ x: {} }, { o: {} }, { x: {} }],
-        [{ x: {} }, { o: {} }, { o: {} }],
-        [{ o: {} }, { x: {} }, null],
-      ]
-    );
+    await play(program, player6, player5, globalStateAddress, gameAddress, { row: 2, column: 0 }, 9, { inProgress: {} }, [
+      [{ x: {} }, { o: {} }, { x: {} }],
+      [{ x: {} }, { o: {} }, { o: {} }],
+      [{ o: {} }, { x: {} }, null],
+    ]);
 
     // Final move for a draw
-    await play(program, player5, player6, globalStateAddress, gameAddress,
+    await play(
+      program,
+      player5,
+      player6,
+      globalStateAddress,
+      gameAddress,
       { row: 2, column: 2 },
       10,
       { tie: {} }, // Aquí el estado esperado es un empate
@@ -936,19 +760,19 @@ describe("tic-tac-toe", () => {
     const gamePDAAfter = await program.account.game.fetch(gameAddress);
     console.log("Game Address After:", gamePDAAfter);
 
-    expect(gamePDABefore.pot.toNumber()).to.eql(gameBet*2);
+    expect(gamePDABefore.pot.toNumber()).to.eql(gameBet * 2);
     expect(gamePDAAfter.pot.toNumber()).to.eql(0);
 
     let player5BalanceAfter = await provider.connection.getBalance(player5.publicKey);
     let player6BalanceAfter = await provider.connection.getBalance(player6.publicKey);
 
-    let prize = gameBet * 2 - (gameBet * 2 * gameFeeP / 100);
+    let prize = gameBet * 2 - (gameBet * 2 * gameFeeP) / 100;
 
-    expect(player5BalanceAfter).to.eql(player5BalanceBefore + (prize / 2));
-    expect(player6BalanceAfter).to.eql(player6BalanceBefore + (prize / 2));
+    expect(player5BalanceAfter).to.eql(player5BalanceBefore + prize / 2);
+    expect(player6BalanceAfter).to.eql(player6BalanceBefore + prize / 2);
   });
 
-  it('player 4 has not an active game', async () => {
+  it("player 4 has not an active game", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 4 has not an active game");
@@ -956,7 +780,7 @@ describe("tic-tac-toe", () => {
 
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
     // console.log("globalState", globalState);
-    const [derivedGameAddress] =  await anchor.web3.PublicKey.findProgramAddress(
+    const [derivedGameAddress] = await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("game"),
         Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]), // Game Count 2
@@ -968,48 +792,36 @@ describe("tic-tac-toe", () => {
     console.log("Game PDA:", gamePDA);
 
     try {
-      await play(program, player4, player3, globalStateAddress, derivedGameAddress,
-        { row: 0, column: 0 },
-        2,
-        { inProgress: {} },
-        [
-          [{ x: {} }, null, null],
-          [null, null, null],
-          [null, null, null],
-        ]
-      );
-    }
-    catch(error) {
+      await play(program, player4, player3, globalStateAddress, derivedGameAddress, { row: 0, column: 0 }, 2, { inProgress: {} }, [
+        [{ x: {} }, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+    } catch (error) {
       console.log(error.message);
       expect(error.message).to.contain("PlayerHasNotAnActiveGame"); // Check that the error message contains the expected text
     }
   });
 
-  it('player 4 plays on an end game', async () => {
+  it("player 4 plays on an end game", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 4 plays on an end game");
     console.log("----------------------------------------");
-    
+
     // Calculate the PDA for the game account using the appropriate seeds
-    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [Buffer.from("global_state")],
-      program.programId
-    );
-    
+    const [globalStateAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("global_state")], program.programId);
+
     // Fetch global account
     const globalStatePDA = await program.account.globalState.fetch(globalStateAddress);
-    
+
     const gameCount = globalStatePDA.gameCount.toString();
-    
+
     const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from(globalStatePDA.gameCount.toArray('le', 8)),
-      ],
+      [Buffer.from("game"), Buffer.from(globalStatePDA.gameCount.toArray("le", 8))],
       program.programId
     );
-    
+
     console.log("Game number: ", Number(gameCount));
     console.log("Game Address:", gameAddress.toString());
 
@@ -1043,7 +855,7 @@ describe("tic-tac-toe", () => {
     const globalState = await program.account.globalState.fetch(globalStateAddress);
     // console.log("globalState", globalState);
 
-    const [finishedGameAddress] =  await anchor.web3.PublicKey.findProgramAddress(
+    const [finishedGameAddress] = await anchor.web3.PublicKey.findProgramAddress(
       [
         Buffer.from("game"),
         Buffer.from([1, 0, 0, 0, 0, 0, 0, 0]), // Game Count 1
@@ -1055,24 +867,18 @@ describe("tic-tac-toe", () => {
     console.log("Game PDA:", gamePDA);
 
     try {
-      await play(program, player4, player3, globalStateAddress, finishedGameAddress,
-        { row: 0, column: 0 },
-        2,
-        { inProgress: {} },
-        [
-          [{ x: {} }, null, null],
-          [null, null, null],
-          [null, null, null],
-        ]
-      );
-    }
-    catch(error) {
+      await play(program, player4, player3, globalStateAddress, finishedGameAddress, { row: 0, column: 0 }, 2, { inProgress: {} }, [
+        [{ x: {} }, null, null],
+        [null, null, null],
+        [null, null, null],
+      ]);
+    } catch (error) {
       console.log(error.message);
       expect(error.message).to.contain("GameAlreadyOver"); // Check that the error message contains the expected text
     }
   });
 
-  it('player 4 cancel a wating game', async () => {
+  it("player 4 cancel a wating game", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> player 4 cancel a wating game");
@@ -1080,13 +886,7 @@ describe("tic-tac-toe", () => {
 
     const globalState = await program.account.globalState.fetch(globalStateAddress);
     // console.log("globalState", globalState);
-    const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress(
-      [
-        Buffer.from("game"),
-        Buffer.from([4, 0, 0, 0, 0, 0, 0, 0]),
-      ],
-      program.programId
-    );
+    const [gameAddress] = await anchor.web3.PublicKey.findProgramAddress([Buffer.from("game"), Buffer.from([4, 0, 0, 0, 0, 0, 0, 0])], program.programId);
     let gamePDA = await program.account.game.fetch(gameAddress);
 
     // Account exists before
@@ -1105,19 +905,18 @@ describe("tic-tac-toe", () => {
       })
       .signers([player4]) // PlayerTwo is the signer now
       .rpc();
-    
+
     // Account doesn´t exist later
     try {
       let gamePDA = await program.account.game.fetch(gameAddress);
       console.log("Game PDA:", gamePDA);
-    }
-    catch(error) {
+    } catch (error) {
       console.log(error);
       expect(error.message).to.contain("Account does not exist or has no data"); // Check that the error message contains the expected text
     }
   });
 
-  it('game state', async () => {
+  it("game state", async () => {
     console.log("");
     console.log("----------------------------------------");
     console.log(">>> game status");
@@ -1129,17 +928,7 @@ describe("tic-tac-toe", () => {
 });
 
 // Helper function to simulate a move
-async function play(
-  program: Program<TicTacToe>,
-  player,
-  rival,
-  global_state,
-  game,
-  tile,
-  expectedTurn,
-  expectedGameState,
-  expectedBoard
-) {
+async function play(program: Program<TicTacToe>, player, rival, global_state, game, tile, expectedTurn, expectedGameState, expectedBoard) {
   // Make the move
   await program.methods
     .play(tile)
@@ -1148,27 +937,26 @@ async function play(
       game: game,
       player: player.publicKey,
       rival: rival.publicKey,
-      systemProgram: anchor.web3.SystemProgram.programId
+      systemProgram: anchor.web3.SystemProgram.programId,
     })
     .signers(player instanceof (anchor.Wallet as any) ? [] : [player])
     .rpc();
 
   // Verify game state after the move
   const gameState = await program.account.game.fetch(game);
-  
-  console.log("gameState",gameState);
+
+  console.log("gameState", gameState);
 
   if (expectedTurn > gameState.turn) {
     // Player won
-    if (gameState.state.won != undefined ) {
+    if (gameState.state.won != undefined) {
       expect(gameState.state.won).not.to.eql(undefined);
     }
     // Tie
-    else if (gameState.state.tie != undefined ) {
+    else if (gameState.state.tie != undefined) {
       expect(gameState.state.tie).not.to.eql(undefined);
     }
-  }
-  else {
+  } else {
     // Turn must be equal as expected
     expect(gameState.turn).to.equal(expectedTurn);
   }
@@ -1178,12 +966,11 @@ async function play(
 
 function getGamePDAFromPlayerPubKey(globalStatePDA, playerPubKey) {
   // Find the index of the target public key
-    const gameIndex = globalStatePDA.playersMapping.map((pubKey) => pubKey.toString()).indexOf(playerPubKey);
-    if (gameIndex !== -1) {
-      const gamePDA = globalStatePDA.gamesMapping[gameIndex].toString();
-      return gamePDA;
-    }
-    else {
-      return -1;
-    }
+  const gameIndex = globalStatePDA.playersMapping.map((pubKey) => pubKey.toString()).indexOf(playerPubKey);
+  if (gameIndex !== -1) {
+    const gamePDA = globalStatePDA.gamesMapping[gameIndex].toString();
+    return gamePDA;
+  } else {
+    return -1;
+  }
 }

@@ -21,7 +21,7 @@ pub mod tic_tac_toe {
         global_state.game_count = 1; // Initializes the game counter to 1
         global_state.players_mapping = Vec::new(); // Initialize player mapping vector
         global_state.games_mapping = Vec::new(); // Initialize game mapping vector
-        global_state.fee = 5;   // % Percentaje of the game pot
+        global_state.fee = 5;   // % Percentage of the game pot
         global_state.bet = (0.1 * anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL as f64) as u64;
         global_state.owner = OWNER_WALLET;
         msg!("Global state Counter: {}", global_state.game_count);
@@ -152,10 +152,10 @@ pub mod tic_tac_toe {
         let global_state = &mut ctx.accounts.global_state;
         let game_pda = &mut ctx.accounts.game;
         let game_pda_account_info = game_pda.to_account_info();
-        let signer:&Signer = &ctx.accounts.signer;
-        let rival:AccountInfo<> = ctx.accounts.rival.clone();
-        let winner:Option<Pubkey>;
-        let mut canceled_waiting:bool = false;
+        let signer: &Signer = &ctx.accounts.signer;
+        let rival: AccountInfo = ctx.accounts.rival.clone();
+        let winner: Option<Pubkey>;
+        let mut canceled_waiting: bool = false;
 
         // Game must be InProgress or Waiting
         if game_pda.state != GameState::InProgress && game_pda.state != GameState::Waiting {
@@ -207,7 +207,7 @@ pub mod tic_tac_toe {
         if !matches!(ctx.accounts.game.state, GameState::Canceled | GameState::Tie | GameState::Won { .. }) {
             return Err(ErrorCode::GameAlreadyInProgress.into());
         }
-        // Check if the signer is the player 1
+        // Check if the signer is player 1
         let player_one = match ctx.accounts.game.players[0] {
             Some(pk) => pk,
             None => return Err(ErrorCode::PlayerNotFound.into()),
@@ -224,7 +224,7 @@ pub mod tic_tac_toe {
         let global_state = &mut ctx.accounts.global_state;
         let owner = &mut ctx.accounts.owner;
     
-        // Check if there is enough funds to transfer 
+        // Check if there are enough funds to transfer
         require!(**global_state.to_account_info().lamports.borrow() >= amount, ErrorCode::InsufficientFunds);
     
         // Transfer fees to the owner
@@ -237,7 +237,7 @@ pub mod tic_tac_toe {
 
 impl Default for GameState {
     fn default() -> Self {
-        GameState::Uninitialized // Cambia esto si otra variante tiene más sentido como valor por defecto
+        GameState::Uninitialized // Change this if another variant makes more sense as the default value
     }
 }
 
@@ -271,7 +271,6 @@ impl GlobalState {
         }
     }
 
-
     // Finds and returns the game PDA associated with a player
     pub fn find_game_from_player(&self, player: Pubkey) -> Result<Pubkey> {
         if let Some(index) = self.players_mapping.iter().position(|&p| p == player) {
@@ -303,11 +302,11 @@ impl Game {
     fn current_signer_index(&self, player: Option<Pubkey>) -> usize {
         match player {
             Some(player_pubkey) => {
-                // Aquí `player_pubkey` es de tipo `Pubkey`.
-                println!("El valor de la clave pública es: {:?}", player_pubkey);
+                // Here `player_pubkey` is of type `Pubkey`.
+                println!("The value of the public key is: {:?}", player_pubkey);
                 
                 if let Some(index) = self.players.iter().position(|&p| p == player) {
-                    return index // Devolvemos el índice encontrado como `usize`
+                    return index // Return the found index as `usize`
                 }
                 
                 else {
@@ -332,11 +331,11 @@ impl Game {
     }
 
     // Makes a move on the board.
-    pub fn play<'info>(&mut self, global_state: &mut Account<GlobalState>, game_account_info:AccountInfo<'info,>, player_account:&Signer<'info>, rival_account:AccountInfo<'info>, tile: &Tile) -> Result<()> {
+    pub fn play<'info>(&mut self, global_state: &mut Account<GlobalState>, game_account_info: AccountInfo<'info>, player_account: &Signer<'info>, rival_account: AccountInfo<'info>, tile: &Tile) -> Result<()> {
         msg!("Current Player address: {:?}", player_account.key());
 
-        let current_turn_index:usize = self.current_turn_index();
-        let current_signer_index:usize = self.current_signer_index(Some(player_account.key()));
+        let current_turn_index: usize = self.current_turn_index();
+        let current_signer_index: usize = self.current_signer_index(Some(player_account.key()));
         if current_turn_index != current_signer_index {
             return Err(ErrorCode::NotPlayersTurn.into());
         }
@@ -376,7 +375,7 @@ impl Game {
     }
 
     // Function to update the game state (if there's a winner or tie).
-    fn update_state<'info>(&mut self, global_state: &mut Account<GlobalState>, game_account_info:AccountInfo<'info>, player_account:&Signer<'info>, rival_account:AccountInfo<'info>) {
+    fn update_state<'info>(&mut self, global_state: &mut Account<GlobalState>, game_account_info: AccountInfo<'info>, player_account: &Signer<'info>, rival_account: AccountInfo<'info>) {
         // Check all row and column combinations.
         for i in 0..=2 {
             if self.is_winning_trio([(i, 0), (i, 1), (i, 2)]) {
@@ -410,27 +409,22 @@ impl Game {
         }
         // If no empty tiles remain and no one has won, the game ends in a tie.
         self.state = GameState::Tie;
-        // remove_players();
         msg!("Game ends in a tie!");
-        self.end_game(global_state, game_account_info,None, player_account, rival_account, false);
+        self.end_game(global_state, game_account_info, None, player_account, rival_account, false);
     }
 
-    fn end_game<'info>(&mut self, global_state: &mut Account<GlobalState>, game_account_info:AccountInfo<'info>, winner:Option<Pubkey>, player_account:&Signer<'info>, rival_account:AccountInfo<'info>, canceled_waiting:bool) {
-        
+    fn end_game<'info>(&mut self, global_state: &mut Account<GlobalState>, game_account_info: AccountInfo<'info>, winner: Option<Pubkey>, player_account: &Signer<'info>, rival_account: AccountInfo<'info>, canceled_waiting: bool) {
         msg!("Game POT: {}.", self.pot);
 
-        let fee = self.pot * global_state.fee/100;
+        let fee = self.pot * global_state.fee / 100;
         let _ = game_account_info.sub_lamports(fee);
         let _ = global_state.add_lamports(fee);
         
         let fee_sol = fee as f64 / anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL as f64;
-
         msg!("{} SOL payed out as fee to the global_state account.", fee_sol);
         
         let payout_amount = self.pot - fee;
-        
         let payout_amount_sol = payout_amount as f64 / anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL as f64;
-        
         self.pot -= fee;
 
         let winner_account_info;
@@ -453,32 +447,29 @@ impl Game {
         // Remove players from global mapping
         global_state.remove_players_from_game(game_account_info.key());
 
-        //Payout
+        // Payout
         if canceled_waiting {
-            // Player 1 canceled on waiting
+            // Player 1 canceled while waiting
             self.state = GameState::Canceled;
-            // Payout to the player1
-            // Transfer the pot from game to player
+            // Payout to player 1
             let _ = game_account_info.sub_lamports(payout_amount);
             let _ = player_one_account_info.add_lamports(payout_amount);
             msg!("{} SOL payed out as cancel game to player {}.", payout_amount_sol, player_one_account_info.key());
             self.pot -= payout_amount;
             self.paid = true;
         }
-
         else if winner == None {
             // Tie
             self.state = GameState::Tie;
             // Split payout
             let _ = game_account_info.sub_lamports(payout_amount);
-            let _ = player_one_account_info.add_lamports(payout_amount/2);
-            let _ = player_two_account_info.add_lamports(payout_amount/2);
-            msg!("{} SOL payed out as tie to player {}.", payout_amount_sol/2.0, player_one_account_info.key());
-            msg!("{} SOL payed out as tie to player {}.", payout_amount_sol/2.0, player_two_account_info.key());
+            let _ = player_one_account_info.add_lamports(payout_amount / 2);
+            let _ = player_two_account_info.add_lamports(payout_amount / 2);
+            msg!("{} SOL payed out as tie to player {}.", payout_amount_sol / 2.0, player_one_account_info.key());
+            msg!("{} SOL payed out as tie to player {}.", payout_amount_sol / 2.0, player_two_account_info.key());
             self.pot -= payout_amount;
             self.paid = true;
         }
-        
         else {
             // There is a winner
             if winner == Some(player_one) {
@@ -487,7 +478,7 @@ impl Game {
             else {
                 winner_account_info = player_two_account_info;
             }
-            self.state = GameState::Won { winner: winner.unwrap()};
+            self.state = GameState::Won { winner: winner.unwrap() };
             // Payout to the winner
             let _ = game_account_info.sub_lamports(payout_amount);
             let _ = winner_account_info.add_lamports(payout_amount);
@@ -495,7 +486,7 @@ impl Game {
             self.pot -= payout_amount;
             self.paid = true;
         }
-        
+
         // Emit an event to log the game details before closing the account
         emit!(GameFinished {
             player_one: player_one,
@@ -648,7 +639,7 @@ pub enum ErrorCode {
     GameAlreadyInProgress,
     #[msg("Game not in progress.")]
     GameNotInProgress,
-    #[msg("Attempt to play in a game that has already ended..")]
+    #[msg("Attempt to play in a game that has already ended.")]
     GameAlreadyOver,
     #[msg("Not the current player's turn.")]
     NotPlayersTurn,
@@ -656,10 +647,10 @@ pub enum ErrorCode {
     TileAlreadySet,
     #[msg("Attempt to play outside the board limits.")]
     TileOutOfBounds,
-    #[msg("No uinitilized or waiting game.")]
+    #[msg("No uninitialized or waiting game.")]
     NoUninitializedOrWaitingGame,
     #[msg("Player has not an active game.")]
     PlayerHasNotAnActiveGame,
-    #[msg("Player has not enough funds for join the game.")]
+    #[msg("Player has not enough funds to join the game.")]
     InsufficientFunds,
 }
